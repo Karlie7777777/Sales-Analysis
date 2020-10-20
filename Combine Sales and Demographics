@@ -1,0 +1,68 @@
+import pandas as pd
+df = pd.read_csv('V3.csv')
+df.columns
+
+# median income by state
+med_inc = pd.read_excel('Median Household Income by State.xlsx')
+
+# merge
+merge = df.merge(med_inc, how = 'left', left_on = 'shipping_region', right_on = 'State')
+merge.head(1)
+merge = merge.drop(columns=['State_y'])
+
+# change col name
+merge = merge.rename(columns = {2018:'Med_House_inc_2018'}) 
+#2018 in column name is not string, but just number here??? So weird.
+
+merge.to_csv('V3.csv',index=False)
+
+# county name
+df['County Name'] = df['County Name'].apply(lambda x: x.capitalize() if type(x)==str else None)
+set(df['County Name'])
+def capital_word(x):
+    county = ''
+    if type(x)==str:
+        split = x.split(' ')
+        if len(split) == 1:
+            county = x
+        elif len(split) > 1:
+            for i in range(len(split)): #don't need to minus one here. 
+                if i == 0:
+                    county += split[i].capitalize()
+                else:
+                    county += " " + split[i].capitalize()
+    else:
+        county= None
+    return county
+df['County Name'] = df['County Name'].apply(capital_word)
+
+for i in df['County Name']:
+    if type(i) == str:
+        if len(i.split(' '))>1:
+            print(i)
+### YAY!!! All Settled!!!     
+
+# Time
+df['Day'] = df.day.apply(lambda x: x.split('/')[0]+'/'+x.split('/')[1]+'/'+'20'+x.split('/')[2])
+df['time'] = df.Day.apply(lambda x: datetime.strptime(x,'%m/%d/%Y') if type(x)==str else None)
+df['Year'] = df.time.apply(lambda x: x.year)
+df['Month'] = df.time.apply(lambda x: x.month)
+df['Day'] = df.time.apply(lambda x: x.day)
+df.head(1)
+
+num_county = len(set(df[df.Year == 2019]['County Name']))
+Total_netsales = sum(df[df.Year == 2019].net_sales)
+
+# average net sales by county
+avg_net_county = Total_netsales/num_county
+a = avg_net_county
+
+
+# Create a column to record thoes counties with sales higher than average in 2019
+df_2019 = df[df.Year==2019]
+county_sales = df_2019[['County Name','net_sales','shipping_region']].groupby(['shipping_region','County Name']).sum()
+county_sales.head(1)
+
+county_sales['Higher_avg'] = county_sales.net_sales.apply(lambda x: 'Higher' if x>a else 'Lower')
+county_sales
+county_sales.to_csv('county_sales_2019.csv')
