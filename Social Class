@@ -1,0 +1,65 @@
+import pandas as pd
+df_all = pd.read_csv('sales_new.csv')
+
+df_ACS = pd.read_csv('USZipCodes_subset.csv') #select several useful column
+df_ACS.shape
+df_ACS.columns
+
+df = df_all[df_all.shipping_country=='United States']
+df.shape #make sense
+df.shipping_postal_code.isna().sum()
+
+## modify zipcode before merge
+def zipcode(x):
+    if type(x)==str:
+        if '-' in x:
+            code = int(x.split('-')[0])
+        elif ',' in x:
+            code = int(x.split(',')[1])
+        else:
+            try:
+                code = int(x)
+            except:
+                code = None
+    else:
+        code = None
+    return code
+df.shipping_postal_code = df.shipping_postal_code.apply(zipcode)
+df.shipping_postal_code.isna().sum()  ## settled!!!
+
+# merge with modified zipcod
+df_merge = df.merge(df_ACS,how='left',left_on='shipping_postal_code',right_on='Zipcode')
+
+# change income to integer
+def str2int(x):
+    num = None
+    if type(x) == str: #not null
+        if x == '-':
+            num = None
+        elif ('+' in x) == True:
+            num = 250000
+#             print(x)
+        else:
+            num = int(x)
+    else:
+        num = None
+    return num
+df_merge['Income_med'] = df_merge['ACS Household Income Median'].apply(str2int)
+
+# VIsualization
+df_merge.Income_med.hist(bins=50)
+
+# Create social class
+def social_class(x):
+    socialclass = ''
+    try:  ## can't ue type(x)==int here, because they are not int. maybe float.
+        if x>=145500:
+            socialclass = 'Upper'
+        elif x<145500 and x>=48500:
+            socialclass = 'Middle'
+        elif x<48500:
+            socialclass = 'Lower'
+    except:
+        socialclass = ''
+    return socialclass
+df_merge['class'] = df_merge['Income_med'].apply(social_class)
