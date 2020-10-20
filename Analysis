@@ -1,0 +1,26 @@
+import pandas as pd
+df = pd.read_csv('V2.csv')
+
+df.shape, df.columns
+
+df.head(1)
+
+subset = df[['day','net_sales']]
+
+# Daily sales
+grouped = df[['day','net_sales']].groupby(['day']).sum()
+grouped.sort_values('net_sales',ascending = False)
+
+# City Sales
+df_US = df[df['shipping_country']=='United States']
+group = df_US[['shipping_region','net_sales','shipping_city']].groupby(['shipping_region','shipping_city']).sum()
+group.sort_values('net_sales',ascending=False).head(20)
+
+# State Sales
+df_US = df[df['shipping_country']=='United States']
+group = df_US[['shipping_region','net_sales']].groupby(['shipping_region']).sum()
+group.sort_values('net_sales',ascending=False).head(20)
+
+df_US[df.shipping_city=='San Francisco'].net_sales.sum()
+
+df_US[df.shipping_region=='California'].shipping_city.value_counts()
