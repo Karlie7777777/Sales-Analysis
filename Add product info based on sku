@@ -1,0 +1,21 @@
+def modify_name(product):
+    if 'Petite' not in product:
+        try:
+            cate = product.split(' ')[0]
+            size = product.split(' ')[1]
+            resist = product.split(' ')[2]
+            if 'Men' in cate:
+                category = 'Men\'s'
+            if 'Women' in cate:
+                category = 'Women\'s'
+            product_name = category + ' ' + size + ' ' + resist
+        except:
+            print(product)
+    else:
+        product_name = product
+        category = product.split(' ')[0] + ' ' + product.split(' ')[1]
+        size = product.split(' ')[2]
+        resist = product.split(' ')[3]
+    return (category, size, resist, product_name)
+    
+(df['cate'],df['size'],df['resist'],df['product_name']) =zip(*df['Product Description'].map(modify_name))
