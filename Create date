@@ -1,0 +1,50 @@
+import pandas as pd
+import numpy as np
+df = pd.read_csv("V2.csv")
+# need to save a version for SQL
+
+df.columns
+
+df.iloc[777]['day'].split('/')
+df['full_day'] = df['day'].apply(lambda x: x.split('/')[0]+'/'+x.split('/')[1]+'/20'+x.split('/')[2])
+df.iloc[777]['full_day']
+
+# Timestamp
+from datetime import datetime
+df['time'] = df['full_day'].apply(lambda x: datetime.strptime(x,'%m/%d/%Y') if type(x) == str else None)
+df.iloc[7777]['time']
+df.iloc[7777]['time'].year
+
+# 2019 subset
+df_2019 = df[(df.time>='2019-01-01')&(df.time<='2019-12-31')]
+df_2019.shape
+df_2019.head(5)
+
+# Visualization 
+df_2019.net_sales.hist(bins = 100)
+
+# adjustment
+adjustment_order_list = []
+def adj_list(row):
+    if row.adjustment == 'Yes':
+#         adjustment_order_list.append(row.order_name)
+        print(row)
+df.apply(adj_list,axis = 1)
+# adjustment_order_list[0], len(adjustment_order_list) #629 adjustments in whole dataset, not just 2019
+
+df.adjustment.value_counts()
+
+df_adj  = df[df.order_name.isin(adjustment_order_list)]
+
+df_adj.to_csv('adjustment.csv',index=False)
+
+#SQL analysis
+df_adjsql = df_adj[['day', 'adjustment', 'cancelled', 'financial_status',
+       'fulfillment_status', 'order_id', 'order_name', 'sale_kind',
+       'sale_line_type', 'billing_city', 'billing_region', 'billing_country',
+       'billing_postal_code', 'customer_id', 'variant_sku', 'shipping_city',
+       'shipping_region', 'shipping_country', 'shipping_postal_code',
+       'referrer_host', 'referrer_name', 'referrer_path', 'referrer_source',
+       'referrer_url', 'orders', 'gross_sales', 'discounts', 'returns',
+       'net_sales', 'shipping', 'taxes', 'total_sales', 'average_order_value', 'net_quantity', 'ordered_item_quantity',
+       'returned_item_quantity', 'grouped_product', 'product_name','full_day','time']]
